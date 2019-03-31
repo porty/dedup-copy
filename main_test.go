@@ -2,15 +2,25 @@ package main
 
 import (
 	"os"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
-func TestDedupFS(t *testing.T) {
+func normalise(path string) string {
+	if runtime.GOOS != "windows" {
+		return path
+	}
+	return "C:" + strings.Replace(path, "/", "\\", -1)
+}
+
+func TestDedupFSUnix(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	writeFile := func(filename string, contents string) {
+		filename = normalise(filename)
 		if err := afero.WriteFile(fs, filename, []byte(contents), 0660); err != nil {
 			panic(err)
 		}
@@ -24,7 +34,7 @@ func TestDedupFS(t *testing.T) {
 	writeFile("/src/dir2/.DS_Store", "ds store")
 	writeFile("/src/dir2/._.DS_Store", "more ds store")
 
-	copied, skipped, err := dedupFS(fs, "/src", "/dest", true)
+	copied, skipped, err := dedupFS(fs, normalise("/src"), normalise("/dest"), true)
 
 	require.NoError(t, err)
 	require.Equal(t, int64(17), copied)
@@ -32,7 +42,7 @@ func TestDedupFS(t *testing.T) {
 
 	destFiles := []string{}
 
-	afero.Walk(fs, "/dest", func(sourcePath string, info os.FileInfo, err error) error {
+	afero.Walk(fs, normalise("/dest"), func(sourcePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			panic(err)
 		}
@@ -49,8 +59,8 @@ func TestDedupFS(t *testing.T) {
 	})
 
 	require.Equal(t, []string{
-		"/dest/dir1/apple.txt|apple",
-		"/dest/dir1/banana.txt|banana",
-		"/dest/dir2/carrot.txt|carrot",
+		normalise("/dest/dir1/apple.txt|apple"),
+		normalise("/dest/dir1/banana.txt|banana"),
+		normalise("/dest/dir2/carrot.txt|carrot"),
 	}, destFiles)
 }

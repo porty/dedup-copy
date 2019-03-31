@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -101,12 +100,12 @@ func dedupFS(fs afero.Fs, inDir string, outDir string, verbose bool) (int64, int
 			return errors.New("failed to seek source file: " + err.Error())
 		}
 
-		dir := path.Join(outDir, path.Dir(relPath))
-		filename := path.Base(relPath)
+		dir := filepath.Join(outDir, filepath.Dir(relPath))
+		filename := filepath.Base(relPath)
 		if err := fs.MkdirAll(dir, 0770); err != nil {
 			return errors.New("failed to create directory heirarchy: " + err.Error())
 		}
-		outFullPath := path.Join(dir, filename)
+		outFullPath := filepath.Join(dir, filename)
 		outFile, err := fs.Create(outFullPath)
 		if err != nil {
 			return errors.New("failed to create output file: " + err.Error())
