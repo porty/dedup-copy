@@ -70,6 +70,10 @@ func dedupFS(fs afero.Fs, inDir string, outDir string, verbose bool) (int64, int
 	var skipped int64
 
 	err := afero.Walk(fs, inDir, func(sourcePath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.New("error during filesystem walk: " + err.Error())
+		}
+
 		relPath := strings.TrimPrefix(sourcePath, inDir+string(os.PathSeparator))
 		if info.IsDir() || info.Size() == 0 || strings.HasSuffix(sourcePath, ".DS_Store") {
 			return nil
