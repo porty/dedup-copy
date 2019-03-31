@@ -36,7 +36,7 @@ func main() {
 		fmt.Println("Nothing happened?")
 		os.Exit(1)
 	} else {
-		percent := float64(copied) / float64(copied+skipped)
+		percent := float64(copied) / float64(copied+skipped) * 100.0
 		fmt.Printf("Copied %d MB, skipped %d MB (%.2f%%)\n", copied/1024, skipped/1024, percent)
 	}
 }
@@ -77,7 +77,7 @@ func dedupFS(fs afero.Fs, inDir string, outDir string, verbose bool) (int64, int
 		if info.IsDir() || info.Size() == 0 || strings.HasSuffix(sourcePath, ".DS_Store") {
 			return nil
 		}
-		fmt.Fprintf(verboseLog, "% 50s: ", relPath)
+		fmt.Fprintf(verboseLog, "%-50s: ", relPath)
 		inFile, err := fs.Open(sourcePath)
 		if err != nil {
 			return errors.New("failed to open source file: " + err.Error())
